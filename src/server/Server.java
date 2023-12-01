@@ -7,21 +7,22 @@ import java.nio.file.Paths;
 import java.io.*;
 
 public class Server {
-    // final String ip;
+    final String ip;
     final int port;
 
-    public Server(int port) {
-        this.port = port;
-    }
-   /*  public Server(String ip, int port) {
+    // public Server(int port) {
+    //     this.port = port;
+    // }
+
+    public Server(String ip, int port) {
         this.ip = ip;
         this.port = port;
-    } */
+    }
     
     public void run() {
         //IP da máquina na rede no host do INetAddress.getByName
-        // try(ServerSocket httpServer = new ServerSocket(this.port, 0, InetAddress.getByName(this.ip)))
-        try(ServerSocket httpServer = new ServerSocket(this.port)) {
+        // try(ServerSocket httpServer = new ServerSocket(this.port))
+        try(ServerSocket httpServer = new ServerSocket(this.port, 0, InetAddress.getByName(this.ip))) {
             System.out.println("Aguardando requisiçoes...");
 
             while (true) {
@@ -43,6 +44,8 @@ public class Server {
             while (!(line = in.readLine()).isEmpty()) {
                 request.append(line).append("\r\n");
             }
+
+            System.out.println(request.toString());
 
             String[] requestSplitted = request.toString().split(" ");
             String response = "";
@@ -81,7 +84,7 @@ public class Server {
     }
     private String getRequest(){
         // Resposta HTTP de exemplo
-        return sendFileContents("src/index.html");
+        return sendFileContents("ProjetoRedes\\src\\index.html");
     }
 
     private String sendFileContents(String fileName) {

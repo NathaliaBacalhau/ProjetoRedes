@@ -1,6 +1,5 @@
 package server;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -9,11 +8,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.io.*;
 
 public class Server {
     final String ip;
     final int port;
+    ArrayList<String> arquivos;
 
     String ok = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n";
 
@@ -26,6 +27,7 @@ public class Server {
     public Server(String ip, int port) {
         this.ip = ip;
         this.port = port;
+        arquivos = new ArrayList();
     }
 
     public void run() {
@@ -99,16 +101,21 @@ public class Server {
         if (route.equals("/")) {
             return sendFileContent("src\\home.html");
         }
+        if (route.equals("/getAll")) {
+            return arquivos.toString(); 
+        }
         if (route.contains("/get")) {
             String fileName = route.replace("/get/", "");
             return sendFileContent("src\\server\\files\\" + fileName);
         }
+        
         return badRequest;
     }
 
     private String postHandler(String route, JsonObject object) {
         if (route.equals("/create")) {
             String fileName = object.get("name").getAsString();
+            arquivos.add(fileName);
             String fileData = object.get("data").getAsString();
             Path filePath = Paths.get("src\\server\\files", fileName);
             try {

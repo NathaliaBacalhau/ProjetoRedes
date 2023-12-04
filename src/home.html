@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>CRUD Operations</title>
+		<title>File Cloud</title>
 		<style>
 			body {
 				font-family: Arial, sans-serif;
@@ -75,6 +75,8 @@
 		</form>
 		<textarea id="textoGet"></textarea>
 
+		<h2>GetAll</h2>
+
 		<!-- Formulário para excluir um arquivo existente -->
 		<h2>Delete</h2>
 		<form id="deleteForm">
@@ -83,6 +85,7 @@
 		</form>
 
 		<script>
+			import config from './config.json' assert { type: 'json' };
 
 			// Função para criar um novo arquivo
 			function createFile() {
@@ -92,7 +95,7 @@
 					alert('Preencha os campos');
 					return;
 				}
-				const createUrl = 'http://192.168.1.11:8080/create';
+				const createUrl =  `http://${config.ip}:${config.port}/create`;
 				fetch(createUrl, {
 					method: 'POST',
 					headers: {
@@ -100,7 +103,7 @@
 					},
 					body: JSON.stringify({ name: nome, data: dados }),
 				}).then(response => response.statusText).then(message => {
-					alert(message);
+					alert(`Arquivo "${nome}" criado.`);
 				});
 			}
 
@@ -111,7 +114,7 @@
 					alert('Preencha os campo de busca');
 					return;
 				}
-				const getUrl = `http://192.168.1.11:8080/get/${nome}`;
+				const getUrl = `http://${config.ip}:${config.port}/get/${nome}`;
 				fetch(getUrl, {
 					method: 'GET'
 				}).then(response => {
@@ -128,13 +131,22 @@
 					alert('Preencha o campo de deleção');
 					return;
 				}
-				const deleteUrl = `http://192.168.1.11:8080/delete/${nome}`;
+				const deleteUrl = `http://${config.ip}:${config.port}/delete/${nome}`;
 				fetch(deleteUrl, {
 					method: 'DELETE'
 				}).then(response => response.statusText).then(message => {
-					alert(message);
+					alert(`Arquivo "${nome}" deletado.`);
 				});
 			}
+
+			function getAll() {
+			const getAllUrl = `http://${config.ip}:${config.port}/getAll`;
+			fetch(getAllUrl, {
+				method: 'GET'
+			}).then(response => response.statusText).then(message => {
+		
+			});
+		}
 		</script>
 	</body>
 

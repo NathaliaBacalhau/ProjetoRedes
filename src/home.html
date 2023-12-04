@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>CRUD Operations</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background-color: #f4f4f4;
+				margin: 0;
+				padding: 0;
+			}
+
+			h1,
+			h2 {
+				color: #333;
+			}
+
+			form {
+				margin-bottom: 20px;
+			}
+
+			input {
+				padding: 10px;
+				margin-bottom: 10px;
+				width: 100%;
+				box-sizing: border-box;
+			}
+
+			button {
+				padding: 10px;
+				background-color: #4caf50;
+				color: white;
+				border: none;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background-color: #45a049;
+			}
+
+			ul {
+				list-style-type: none;
+				padding: 0;
+			}
+
+			li {
+				background-color: #fff;
+				padding: 10px;
+				margin-bottom: 5px;
+				border-radius: 5px;
+				box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>File Cloud</h1>
+
+		<!-- Formulário para criar um arquivo -->
+		<h2>Create</h2>
+		<form id="createForm">
+			<input type="text" id="nomeCriar" placeholder="Nome do arquivo" required>
+			<input type="text" id="dadosCriar" placeholder="Dados" required>
+			<button type="button" onclick="createFile()">Create</button>
+		</form>
+
+		<!-- Formulário para buscar um arquivo -->
+		<h2>Get</h2>
+		<form id="getForm">
+			<input type="text" id="nomeBuscar" placeholder="Nome do arquivo" required>
+			<button type="button" onclick="getFile()">Get</button>
+		</form>
+		<textarea id="textoGet"></textarea>
+
+		<!-- Formulário para excluir um arquivo existente -->
+		<h2>Delete</h2>
+		<form id="deleteForm">
+			<input type="text" id="nomeDeletar" placeholder="Nome do arquivo" required>
+			<button type="button" onclick="deleteFile()">Delete</button>
+		</form>
+
+		<script>
+
+			// Função para criar um novo arquivo
+			function createFile() {
+				const nome = document.getElementById('nomeCriar').value;
+				const dados = document.getElementById('dadosCriar').value;
+				if (!nome || !dados) {
+					alert('Preencha os campos');
+					return;
+				}
+				const createUrl = 'http://192.168.1.11:8080/create';
+				fetch(createUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ name: nome, data: dados }),
+				}).then(response => response.statusText).then(message => {
+					alert(message);
+				});
+			}
+
+			// Função para ver arquivos existentes
+			function getFile() {
+				const nome = document.getElementById('nomeBuscar').value;
+				if (!nome) {
+					alert('Preencha os campo de busca');
+					return;
+				}
+				const getUrl = `http://192.168.1.11:8080/get/${nome}`;
+				fetch(getUrl, {
+					method: 'GET'
+				}).then(response => {
+					return response.text();
+				}).then(data => {
+					document.getElementById('textoGet').value = data;
+				});
+			}
+
+			// Função para excluir um arquivo existente
+			function deleteFile() {
+				const nome = document.getElementById('nomeDeletar').value;
+				if (!nome) {
+					alert('Preencha o campo de deleção');
+					return;
+				}
+				const deleteUrl = `http://192.168.1.11:8080/delete/${nome}`;
+				fetch(deleteUrl, {
+					method: 'DELETE'
+				}).then(response => response.statusText).then(message => {
+					alert(message);
+				});
+			}
+		</script>
+	</body>
+
+</html>

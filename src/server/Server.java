@@ -103,17 +103,17 @@ public class Server {
     // Se a rota não existir, o retorno será um bad request
     private String getHandler(String route) {
         if (route.equals("/")) {
-            Path home = Paths.get("src\\home.html");
-            return get(home);
+            Path home = Paths.get(getServerFolder(), "home.html");
+            return get(home).replace("$root$", root);
         }
         if (route.contains("/getAll")) {
-            String filesFolder = route.replace("/getAll/", "");
-            Path filesPath = Paths.get(filesFolder);
+            String filesFolder = route.replaceFirst("/getAll/", "");
+            Path filesPath = Paths.get(getServerFolder(), filesFolder);
             return getAll(filesPath);
         }
         if (route.contains("/get")) {
-            String fileName = route.replace("/get/", "");
-            Path filePath = Paths.get(fileName);
+            String fileName = route.replaceFirst("/get/", "");
+            Path filePath = Paths.get(getServerFolder(), fileName);
             return get(filePath);
         }
         return notFound;
@@ -147,10 +147,11 @@ public class Server {
     }
 
     private String postHandler(String route, JsonObject object) {
-        if (route.equals("/create")) {
+        if (route.contains("/create")) {
+            String fileDirectory = route.replaceFirst("/create/", "");
             String fileName = object.get("name").getAsString();
             String fileData = object.get("data").getAsString();
-            Path filePath = Paths.get(fileName);
+            Path filePath = Paths.get(getServerFolder(), fileDirectory, fileName);
             return create(filePath, fileData);
         }
         return notFound;
@@ -168,8 +169,8 @@ public class Server {
 
     private String deleteHandler(String route) {
         if (route.contains("/delete")) {
-            String fileName = route.replace("/delete/", "");
-            Path filePath = Paths.get(fileName);
+            String fileName = route.replaceFirst("/delete/", "");
+            Path filePath = Paths.get(getServerFolder(), fileName);
             return delete(filePath);
         }
         return notFound;
@@ -184,4 +185,8 @@ public class Server {
         }
     }
     // #endregion
+
+    private String getServerFolder() {
+        return "src\\server";
+    }
 }

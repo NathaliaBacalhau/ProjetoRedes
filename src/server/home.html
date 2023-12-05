@@ -85,6 +85,12 @@
 		</form>
 
 		<script>
+			const stack = ["$root$"];
+
+			function path() {
+				return stack.join('\\');
+			}
+
 			// Função para criar um novo arquivo
 			function createFile() {
 				const nome = document.getElementById('nomeCriar').value;
@@ -93,7 +99,7 @@
 					alert('Preencha os campos');
 					return;
 				}
-				fetch('/create', {
+				fetch(`/create/${path()}`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
@@ -111,12 +117,14 @@
 					alert('Preencha os campo de busca');
 					return;
 				}
-				fetch(`/get/${nome}`, {
+				stack.push(nome);
+				fetch(`/get/${path()}`, {
 					method: 'GET'
 				}).then(response => {
 					return response.text();
 				}).then(data => {
 					document.getElementById('textoGet').value = data;
+					stack.pop();
 				});
 			}
 
@@ -127,20 +135,24 @@
 					alert('Preencha o campo de deleção');
 					return;
 				}
-				fetch(`/delete/${nome}`, {
+				stack.push(nome);
+				fetch(`/delete/${path()}`, {
 					method: 'DELETE'
 				}).then(response => response.statusText).then(message => {
 					alert(`Arquivo "${nome}" deletado.`);
+					stack.pop();
 				});
 			}
 
 			function getAll() {
-				fetch('/getAll', {
+				fetch(`/getAll/${path()}`, {
 					method: 'GET'
-				}).then(response => response.statusText).then(message => {
-
+				}).then(response => response.text()).then(files => {
+					console.log(files);
 				});
 			}
+
+			getAll();
 		</script>
 	</body>
 

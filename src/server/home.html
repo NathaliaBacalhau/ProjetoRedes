@@ -8,50 +8,24 @@
 		<style>
 			body {
 				font-family: Arial, sans-serif;
-				background-color: #f4f4f4;
+				background-color: #ffffff;
 				margin: 0;
 				padding: 0;
 			}
 
-			h1,
-			h2 {
-				color: #333;
+			h1 {
+				color: rgb(0, 0, 0);
 			}
 
-			form {
-				margin-bottom: 20px;
-			}
-
-			input {
+			.dropzone {
+				display: grid;
+				margin-left: 10%;
 				padding: 10px;
-				margin-bottom: 10px;
-				width: 100%;
-				box-sizing: border-box;
-			}
-
-			button {
-				padding: 10px;
-				background-color: #4caf50;
-				color: white;
-				border: none;
-				cursor: pointer;
-			}
-
-			button:hover {
-				background-color: #45a049;
-			}
-
-			ul {
-				list-style-type: none;
-				padding: 0;
-			}
-
-			li {
-				background-color: #fff;
-				padding: 10px;
-				margin-bottom: 5px;
+				width: 80%;
+				border: 4px solid;
 				border-radius: 5px;
-				box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+				border-color: rgb(0, 0, 0);
+				
 			}
 		</style>
 	</head>
@@ -59,32 +33,36 @@
 	<body>
 		<h1>File Cloud</h1>
 
-		<!-- Formulário para criar um arquivo -->
-		<h2>Create</h2>
-		<form id="createForm">
-			<input type="text" id="nomeCriar" placeholder="Nome do arquivo" required>
-			<input type="text" id="dadosCriar" placeholder="Dados" required>
-			<button type="button" onclick="createFile()">Create</button>
-		</form>
-
-		<!-- Formulário para buscar um arquivo -->
-		<h2>Get</h2>
-		<form id="getForm">
-			<input type="text" id="nomeBuscar" placeholder="Nome do arquivo" required>
-			<button type="button" onclick="getFile()">Get</button>
-		</form>
-		<textarea id="textoGet"></textarea>
-
-		<h2>GetAll</h2>
-
-		<!-- Formulário para excluir um arquivo existente -->
-		<h2>Delete</h2>
-		<form id="deleteForm">
-			<input type="text" id="nomeDeletar" placeholder="Nome do arquivo" required>
-			<button type="button" onclick="deleteFile()">Delete</button>
-		</form>
+		<div id="files" class="dropzone" ondragover="allowDrop(event)" ondrop="dropHandler(event)">
+		</div>
 
 		<script>
+			function allowDrop(event) {
+				event.preventDefault();
+				const dropzone = document.getElementById('files');
+				if (dropzone) {
+					dropzone.classList.add('active');
+				}
+			}
+
+			function dropHandler(event) {
+				event.preventDefault();
+				const dropzone = document.getElementById('files');
+				if (dropzone) {
+					dropzone.classList.remove('active');
+				}
+				const files = event.dataTransfer.files;
+				for (const file of files) {
+					const reader = new FileReader();
+					reader.onload = function (e) {
+						const content = e.target.result;
+						createFile(file.name, content);
+					};
+					reader.readAsText(file);
+				}
+				getAll();
+			}
+
 			const stack = ["$root$"];
 
 			function path() {
@@ -92,21 +70,13 @@
 			}
 
 			// Função para criar um novo arquivo
-			function createFile() {
-				const nome = document.getElementById('nomeCriar').value;
-				const dados = document.getElementById('dadosCriar').value;
-				if (!nome || !dados) {
-					alert('Preencha os campos');
-					return;
-				}
+			function createFile(name, data) {
 				fetch(`/create/${path()}`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ name: nome, data: dados }),
-				}).then(response => response.statusText).then(message => {
-					alert(`Arquivo "${nome}" criado.`);
+					body: JSON.stringify({ name: name, data: data }),
 				});
 			}
 
@@ -148,7 +118,13 @@
 				fetch(`/getAll/${path()}`, {
 					method: 'GET'
 				}).then(response => response.text()).then(files => {
-					console.log(files);
+					const fileList = files.substring(1, files.length - 1).split(',').map(file => file.trim());
+					for (const file of fileList) {
+						const link = document.createElement('a');
+						link.href = `/get/${path()}/${file}`;
+						link.innerText = file;
+						document.getElementById('files').appendChild(link);
+					}
 				});
 			}
 

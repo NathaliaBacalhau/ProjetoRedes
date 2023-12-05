@@ -45,16 +45,23 @@
 
 			#fileContent {
 				margin: 10px;
-				width: 500px;
-				height: 250px;
+				width: 50%;
+				height: 25%;
 				resize: none;
 			}
 		</style>
 	</head>
 
 	<body>
-		<div id="files" class="dropzone" ondragover="allowDrop(event)" ondrop="dropHandler(event)">
+		<div>
+			<button id="navigator" onclick="goBack()">&lt;</button>
 
+			<input type="text" id="folder" disabled>
+		</div>
+		
+
+		<div id="files" class="dropzone" ondragover="allowDrop(event)" ondrop="dropHandler(event)">
+			
 		</div>
 
 		<input type="text" id="fileName" disabled>
@@ -101,9 +108,20 @@
 					document.getElementById('files').removeChild(link);
 				});
 				document.getElementById('fileName').value = "";
+				document.getElementById('fileContent').value = "";
+			}
+
+			function goBack() {
+				stack.pop();
+				clearLinks();
+				getAll();
 			}
 
 			function getAll() {
+				document.getElementById('folder').value = path();
+				if (stack.length == 1) {
+					document.getElementById('navigator').disabled = true;
+				} else document.getElementById('navigator').disabled = false;
 				fetch(`/getAll/${path()}`, {
 					method: 'GET'
 				})

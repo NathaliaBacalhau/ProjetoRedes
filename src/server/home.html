@@ -11,6 +11,12 @@
 				background-color: #ffffff;
 				margin: 0;
 				padding: 0;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				text-align: center;
+				height: 100vh;
 			}
 
 			h1 {
@@ -18,25 +24,52 @@
 			}
 
 			.dropzone {
-				display: grid;
-				margin-left: 10%;
-				padding: 10px;
-				width: 80%;
+				padding: 20px;
+				margin: 10px 0;
+				width: 60%;
 				border: 4px solid;
 				border-radius: 5px;
 				border-color: rgb(0, 0, 0);
-				
+			}
+
+			.fileLink {
+				display: inline-block;
+				margin: 5px;
+			}
+
+			#fileName {
+				margin: 10px;
+				display: inline-block;
+				text-align: center;
+			}
+
+			#fileContent {
+				margin: 10px;
+				width: 500px;
+				height: 250px;
+				resize: none;
 			}
 		</style>
 	</head>
 
 	<body>
-		<h1>File Cloud</h1>
-
 		<div id="files" class="dropzone" ondragover="allowDrop(event)" ondrop="dropHandler(event)">
+
 		</div>
 
+		<input type="text" id="fileName" disabled>
+
+		<textarea name="textArea" id="fileContent">
+
+		</textarea>
+
 		<script>
+			const stack = ["$root$"];
+
+			function path() {
+				return stack.join('\\');
+			}
+
 			function allowDrop(event) {
 				event.preventDefault();
 				const dropzone = document.getElementById('files');
@@ -63,11 +96,59 @@
 				getAll();
 			}
 
-			const stack = ["$root$"];
-
-			function path() {
-				return stack.join('\\');
+			function clearLinks() {
+				document.querySelectorAll('.fileLink').forEach(link => {
+					document.getElementById('files').removeChild(link);
+				});
+				document.getElementById('fileName').value = "";
 			}
+
+			function getAll() {
+				fetch(`/getAll/${path()}`, {
+					method: 'GET'
+				})
+					.then(response => response.text())
+					.then(files => {
+						files = files.substring(1, files.length - 1);
+						if (files.length) {
+							const fileList = files.split(',').map(file => file.trim());
+							for (const file of fileList) {
+								const link = document.createElement('a');
+								link.className = 'fileLink';
+								link.href = `/get/${path()}/${file}`;
+								link.innerText = file;
+								document.getElementById('files').appendChild(link);
+							}
+						}
+					})
+					.then(() => {
+						document.querySelectorAll('.fileLink').forEach(link => {
+							link.onclick = function (event) {
+								event.preventDefault();
+
+								const regex = /\.[a-zA-Z0-9]{1,5}$/;
+								function hasFileExtension(fileName) {
+									return regex.test(fileName);
+								}
+
+								if (hasFileExtension(link.innerText)) {
+									fetch(link.href)
+										.then(response => response.text())
+										.then(content => {
+											document.getElementById('fileName').value = link.innerText;
+											document.getElementById('fileContent').value = content;
+										});
+								} else {
+									stack.push(link.innerText);
+									clearLinks();
+									getAll();
+								}
+							}
+						});
+					});
+			}
+
+			getAll();
 
 			// Função para criar um novo arquivo
 			function createFile(name, data) {
@@ -113,22 +194,6 @@
 					stack.pop();
 				});
 			}
-
-			function getAll() {
-				fetch(`/getAll/${path()}`, {
-					method: 'GET'
-				}).then(response => response.text()).then(files => {
-					const fileList = files.substring(1, files.length - 1).split(',').map(file => file.trim());
-					for (const file of fileList) {
-						const link = document.createElement('a');
-						link.href = `/get/${path()}/${file}`;
-						link.innerText = file;
-						document.getElementById('files').appendChild(link);
-					}
-				});
-			}
-
-			getAll();
 		</script>
 	</body>
 

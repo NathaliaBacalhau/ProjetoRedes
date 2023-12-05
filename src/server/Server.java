@@ -12,22 +12,29 @@ import java.util.ArrayList;
 import java.io.*;
 
 public class Server {
-    final String ip;
+    final String ip, root;
     final int port;
-    ArrayList<String> arquivos;
 
+    // #region http responses
     String ok = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n";
 
-    String badRequest = "HTTP/1.1 404 BAD REQUEST\r\n" + "Content-Type: text/html\r\n" + "\r\n";
+    String created = "HTTP/1.1 201 CREATED\r\n" + "Content-Type: text/html\r\n" + "\r\n";
+
+    String badRequest = "HTTP/1.1 400 BAD REQUEST\r\n" + "Content-Type: text/html\r\n" + "\r\n";
+
+    String notFound = "HTTP/1.1 404 NOT FOUND\r\n" + "Content-Type: text/html\r\n" + "\r\n";
 
     String notImplemented = "HTTP/1.1 501 NOT IMPLEMENTED\r\n" + "Content-Type: text/html\r\n" + "\r\n";
 
+    String internalError = "HTTP/1.1 500 INTERNAL SERVER ERROR\r\n" + "Content-Type: text/html\r\n" + "\r\n";
+    // #endregion
+
     JsonParser jsonParser = new JsonParser();
 
-    public Server(String ip, int port) {
+    public Server(String ip, int port, String root) {
         this.ip = ip;
         this.port = port;
-        arquivos = new ArrayList();
+        this.root = root;
     }
 
     public void run() {
@@ -40,7 +47,7 @@ public class Server {
                 handler(clientsSocket);
             }
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 
@@ -60,8 +67,6 @@ public class Server {
             while (!(line = data.readLine()).isEmpty()) {
                 str.append(line).append("\r\n");
             }
-
-            System.out.println(str);
 
             // Captura do tipo de método HTTP, rota
             // Capturar o body nessa etapa era conflitante
@@ -90,7 +95,7 @@ public class Server {
             }
             clientSocket.close();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -99,61 +104,85 @@ public class Server {
     // Se a rota não existir, o retorno será um bad request
     private String getHandler(String route) {
         if (route.equals("/")) {
-            return sendFileContent("src\\home.html");
+            Path home = Paths.get("src\\home.html");
+            return get(home);
         }
-        if (route.equals("/getAll")) {
-            return arquivos.toString(); 
+        if (route.contains("/getAll")) {
+            String filesFolder = route.replace("/getAll/", "");
+            Path filesPath = Paths.get(filesFolder);
+            return getAll(filesPath);
         }
         if (route.contains("/get")) {
             String fileName = route.replace("/get/", "");
-            return sendFileContent("src\\server\\files\\" + fileName);
+            Path filePath = Paths.get(fileName);
+            return get(filePath);
         }
-        
-        return badRequest;
+        return notFound;
+    }
+
+    private String get(Path filePath) {
+        try {
+            byte[] fileBytes = Files.readAllBytes(filePath);
+            String file = new String(fileBytes);
+            return ok + file;
+        } catch (Exception e) {
+            return internalError;
+        }
+    }
+
+    private String getAll(Path filesPath) {
+        if (Files.exists(filesPath)) {
+            try {
+                var filesPaths = Files.walk(filesPath, 1).toList();
+                String fileList = filesPaths.subList(1, filesPaths.size()).stream()
+                        .map(file -> file.getFileName()
+                                .toString())
+                        .toList()
+                        .toString();
+                return ok + fileList;
+            } catch (IOException e) {
+                return internalError;
+            }
+        }
+        return notFound;
     }
 
     private String postHandler(String route, JsonObject object) {
         if (route.equals("/create")) {
             String fileName = object.get("name").getAsString();
-            arquivos.add(fileName);
             String fileData = object.get("data").getAsString();
-            Path filePath = Paths.get("src\\server\\files", fileName);
-            try {
-                Files.createDirectories(filePath.getParent());
-                Files.write(filePath, fileData.getBytes(), StandardOpenOption.CREATE);
-                return ok;
-            } catch (Exception e) {
-                return "HTTP/1.1 500 INTERNAL SERVER ERROR\r\n" + "Content-Type: text/html\r\n" + "\r\n";
-            }
+            Path filePath = Paths.get(fileName);
+            return create(filePath, fileData);
         }
-        return badRequest;
+        return notFound;
+    }
+
+    private String create(Path filePath, String fileData) {
+        try {
+            Files.createDirectories(filePath.getParent());
+            Files.write(filePath, fileData.getBytes(), StandardOpenOption.CREATE);
+            return created;
+        } catch (Exception e) {
+            return badRequest;
+        }
     }
 
     private String deleteHandler(String route) {
         if (route.contains("/delete")) {
             String fileName = route.replace("/delete/", "");
-            Path filePath = Paths.get("src\\server\\files", fileName);
-            try {
-                Files.delete(filePath);
-                return ok;
-            } catch (Exception e) {
-                return "HTTP/1.1 500 INTERNAL SERVER ERROR\r\n" + "Content-Type: text/html\r\n" + "\r\n";
-            }
+            Path filePath = Paths.get(fileName);
+            return delete(filePath);
         }
-        return badRequest;
+        return notFound;
+    }
+
+    private String delete(Path filePath) {
+        try {
+            Files.delete(filePath);
+            return ok;
+        } catch (Exception e) {
+            return notFound;
+        }
     }
     // #endregion
-
-    private String sendFileContent(String fileName) {
-        try {
-            // Carrega o arquivo
-            Path filePath = Paths.get(fileName);
-            byte[] fileBytes = Files.readAllBytes(filePath);
-            String file = new String(fileBytes);
-            // Envia o arquivo
-            return ok + file;
-        } catch (Exception e) {
-            return "HTTP/1.1 500 INTERNAL SERVER ERROR\r\n" + "Content-Type: text/html\r\n" + "\r\n";
-        }
-    }
 }

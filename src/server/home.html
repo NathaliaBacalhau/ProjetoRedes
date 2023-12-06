@@ -105,7 +105,7 @@
 
 		<input type="text" id="fileName" disabled>
 
-		<textarea name="textArea" id="fileContent">
+		<textarea name="textArea" id="fileContent" readonly>
 
 		</textarea>
 
@@ -131,11 +131,18 @@
 					dropzone.classList.remove('active');
 				}
 				const files = event.dataTransfer.files;
+				let counter = 0;
 				for (const file of files) {
 					const reader = new FileReader();
-					reader.onload = function (e) {
+					reader.onload = async function (e) {
 						const content = e.target.result;
-						createFile(file.name, content);
+						await createFile(file.name.replaceAll(" ", ""), content).then(() => {
+							counter++;
+						}).then(() => {
+							if (counter == files.length) {
+								getAll();
+							}
+						});
 					};
 					reader.readAsText(file);
 				}
@@ -181,12 +188,10 @@
 						document.querySelectorAll('.fileLink').forEach(link => {
 							link.onclick = function (event) {
 								event.preventDefault();
-
 								const regex = /\.[a-zA-Z0-9]{1,5}$/;
 								function hasFileExtension(fileName) {
 									return regex.test(fileName);
 								}
-
 								if (hasFileExtension(link.innerText)) {
 									fetch(link.href)
 										.then(response => response.text())
@@ -216,7 +221,7 @@
 			}
 
 			// Função para criar um novo arquivo
-			function createFile(name, data) {
+			async function createFile(name, data) {
 				fetch(`/create/${path()}`, {
 					method: 'POST',
 					headers: {
@@ -227,16 +232,23 @@
 			}
 
 			function fileExplorer() {
+				let counter = 0;
 				let input = document.createElement('input');
 				input.type = 'file';
 				input.multiple = true;
-				input.onchange = () => {
+				input.onchange = async () => {
 					let files = Array.from(input.files);
 					for (const file of files) {
 						const reader = new FileReader();
-						reader.onload = function (e) {
+						reader.onload = async function (e) {
 							const content = e.target.result;
-							createFile(file.name.replaceAll(" ", ""), content);
+							await createFile(file.name.replaceAll(" ", ""), content).then(() => {
+								counter++;
+							}).then(() => {
+								if (counter == files.length) {
+									getAll();
+								}
+							});
 						};
 						reader.readAsText(file);
 					}
@@ -274,7 +286,7 @@
 				});
 			}
 
-			getAll();
+			getAll(); 
 		</script>
 	</body>
 

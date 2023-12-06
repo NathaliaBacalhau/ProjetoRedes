@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Comparator;
 import java.io.*;
 
 public class Server {
@@ -178,7 +179,14 @@ public class Server {
 
     private String delete(Path filePath) {
         try {
-            Files.delete(filePath);
+            if (Files.isDirectory(filePath)) {
+                Files.walk(filePath)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            } else {
+                Files.delete(filePath);
+            }
             return ok;
         } catch (Exception e) {
             return notFound;

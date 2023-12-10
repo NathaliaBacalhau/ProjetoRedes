@@ -18,6 +18,10 @@ public class Server {
     // #region http responses
     String ok = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n";
 
+    String download = "HTTP/1.1 200 OK\r\n" + "Content-Type: application/octet-stream\r\n"
+            + "Content-Disposition: attachment; filename=\"$filename$\"\r\n" + "Content-Length: $fileBytesLength$\r\n"
+            + "\r\n";
+
     String created = "HTTP/1.1 201 CREATED\r\n" + "Content-Type: text/html\r\n" + "\r\n";
 
     String badRequest = "HTTP/1.1 400 BAD REQUEST\r\n" + "Content-Type: text/html\r\n" + "\r\n";
@@ -75,8 +79,7 @@ public class Server {
             String route = str.toString().split(" ")[1];
 
             if (method.equals("GET")) {
-                response.write(getHandler(route).getBytes());
-                response.flush();
+                getHandler(route, response);
             } else if (method.equals("POST")) {
                 // Captura do body
                 StringBuilder body = new StringBuilder();
@@ -102,22 +105,33 @@ public class Server {
     // #region Manipuladores de métodos HTTP
     // Decide o que fazer baseado na rota acessada pelo usuário
     // Se a rota não existir, o retorno será um bad request
-    private String getHandler(String route) {
+    private void getHandler(String route, OutputStream response) throws IOException {
         if (route.equals("/")) {
             Path home = Paths.get(getServerFolder(), "home.html");
-            return get(home).replace("$root$", root);
-        }
-        if (route.contains("/getAll")) {
+            String getHome = get(home).replace("$root$", root);
+            response.write(getHome.getBytes());
+            response.flush();
+        } else if (route.contains("/getAll")) {
             String filesFolder = route.replaceFirst("/getAll/", "");
             Path filesPath = Paths.get(getServerFolder(), filesFolder);
-            return getAll(filesPath);
-        }
-        if (route.contains("/get")) {
+            String getAll = getAll(filesPath);
+            response.write(getAll.getBytes());
+            response.flush();
+        } else if (route.contains("/get")) {
             String fileName = route.replaceFirst("/get/", "");
             Path filePath = Paths.get(getServerFolder(), fileName);
-            return get(filePath);
+            String getFile = get(filePath);
+            response.write(getFile.getBytes());
+            response.flush();
+        } else if (route.contains("/download")) {
+            String fileName = route.replaceFirst("/download/", "");
+            Path filePath = Paths.get(getServerFolder(), fileName);
+            fileName = filePath.getFileName().toString();
+            downloadFile(response, filePath, fileName);
+        } else {
+            response.write(notFound.getBytes());
+            response.flush();
         }
-        return notFound;
     }
 
     private String get(Path filePath) {
@@ -147,21 +161,49 @@ public class Server {
         return notFound;
     }
 
+    private void downloadFile(OutputStream response, Path filePath, String fileName) throws IOException {
+        try {
+            byte[] fileBytes = Files.readAllBytes(filePath);
+            String tempDownload = download.replace("$filename$", fileName);
+            tempDownload = tempDownload.replace("$fileBytesLength$",
+                    String.valueOf(fileBytes.length));
+            System.out.println(tempDownload);
+            response.write(tempDownload.getBytes());
+            response.write(fileBytes);
+        } catch (Exception e) {
+            response.write(internalError.getBytes());
+            response.flush();
+        }
+    }
+
     private String postHandler(String route, JsonObject object) {
         if (route.contains("/create")) {
             String fileDirectory = route.replaceFirst("/create/", "");
             String fileName = object.get("name").getAsString();
-            String fileData = object.get("data").getAsString();
             Path filePath = Paths.get(getServerFolder(), fileDirectory, fileName);
-            return create(filePath, fileData);
+            if (object.get("data").isJsonNull()) {
+                return createFolder(filePath);
+            } else {
+                String fileData = object.get("data").getAsString();
+                return createFile(filePath, fileData);
+            }
         }
         return notFound;
     }
 
-    private String create(Path filePath, String fileData) {
+    private String createFile(Path filePath, String fileData) {
         try {
             Files.createDirectories(filePath.getParent());
             Files.write(filePath, fileData.getBytes(), StandardOpenOption.CREATE);
+            return created;
+        } catch (Exception e) {
+            return badRequest;
+        }
+    }
+
+    private String createFolder(Path filePath) {
+        try {
+            Files.createDirectory(filePath);
             return created;
         } catch (Exception e) {
             return badRequest;

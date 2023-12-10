@@ -97,7 +97,11 @@
 			<input type="text" id="folder" disabled>
 		</div>
 
-		<button id="fileExplorer" onclick="fileExplorer()">Abra seu explorador...</button>
+		<input type="text" id="folderName" placeholder="Nome da pasta">
+
+		<button id="createFolder" onclick="createFolder()">Crie uma nova pasta</button>
+
+		<button id="fileExplorer" onclick="fileExplorer()">Abra seu explorador de arquivos</button>
 
 		<div id="files" class="dropzone" ondragover="allowDrop(event)" ondrop="dropHandler(event)">
 
@@ -207,9 +211,9 @@
 							let pressTimer;
 							link.addEventListener('mousedown', function () {
 								pressTimer = window.setTimeout(function () {
-									const confirmacao = window.confirm("Deseja deletar?");
+									const confirmacao = window.confirm("Fazer download?");
 									if (confirmacao) {
-										deleteFile(link.innerText);
+										downloadFile(link.innerText);
 									}
 								}, 500);
 							});
@@ -231,6 +235,7 @@
 				});
 			}
 
+			// Função para abrir o explorador de arquivos
 			function fileExplorer() {
 				let counter = 0;
 				let input = document.createElement('input');
@@ -256,6 +261,21 @@
 				input.click();
 			}
 
+			function createFolder() {
+				const nome = document.getElementById('folderName').value;
+				if (nome) {
+					fetch(`/create/${path()}`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ name: nome, data: null }),
+					}).then(() => {
+						getAll();
+					});
+				} else alert('A pasta deve possuir um nome');
+			}
+
 			// Função para ver arquivos existentes
 			function getFile() {
 				const nome = document.getElementById('nomeBuscar').value;
@@ -271,6 +291,33 @@
 				}).then(data => {
 					document.getElementById('textoGet').value = data;
 					stack.pop();
+				});
+			}
+
+			// Função para baixar arquivos
+			function downloadFile(nome) {
+				stack.push(nome)
+				fetch(`/download/${path()}`, {
+					method: 'GET'
+				}).then(response => {
+					// Verifica se a requisição foi bem-sucedida (status 2xx)
+					if (!response.ok) {
+						alert(response.statusText);
+					}
+					const contentType = response.headers.get('content-type');
+					if (contentType && contentType.startsWith('application/octet-stream')) {
+						const contentDisposition = response.headers.get('content-disposition');
+						const matches = /filename="([^"]+)"/.exec(contentDisposition);
+						const fileName = matches ? matches[1] : 'downloaded_file';
+						response.blob().then(blob => {
+							const url = window.URL.createObjectURL(blob);
+							const a = document.createElement('a');
+							a.href = url;
+							a.download = fileName;
+							a.click();
+							window.URL.revokeObjectURL(url);
+						});
+					}
 				});
 			}
 

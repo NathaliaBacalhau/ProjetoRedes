@@ -28,8 +28,12 @@
 				font-family: "Rubik Bubbles", sans-serif;
 			}
 
-			img {
+			.cloudIcon {
 				width: 100px;
+			}
+
+			.trash {
+				width: 15px;
 			}
 
 			.nameContent {
@@ -83,7 +87,8 @@
 	<body>
 		<div class="nameContent">
 			<div>
-				<img src="https://cdn.icon-icons.com/icons2/1603/PNG/512/symbol-computing-cloud-syncronize-folder_108651.png"
+				<img class="cloudIcon"
+					src="https://cdn.icon-icons.com/icons2/1603/PNG/512/symbol-computing-cloud-syncronize-folder_108651.png"
 					alt="File Cloud" />
 			</div>
 			<div>
@@ -184,6 +189,18 @@
 								link.className = 'fileLink';
 								link.href = `/get/${path()}/${file}`;
 								link.innerText = file;
+								const del = document.createElement('button');
+								del.addEventListener('click', function () {
+									const confirmacao = window.confirm("Excluir arquivo?");
+									if (confirmacao) {
+										deleteFile(file);
+									}
+								});
+								const img = document.createElement('img');
+								img.src = 'https://cdn.icon-icons.com/icons2/868/PNG/96/trash_bin_icon-icons.com_67981.png';
+								img.className = 'trash';
+								del.appendChild(img);
+								link.appendChild(del);
 								document.getElementById('files').appendChild(link);
 							}
 						}
@@ -198,10 +215,17 @@
 								}
 								if (hasFileExtension(link.innerText)) {
 									fetch(link.href)
-										.then(response => response.text())
+										.then(response => {
+											if (response.ok) {
+												return response.text();
+											}
+											return null;
+										})
 										.then(content => {
-											document.getElementById('fileName').value = link.innerText;
-											document.getElementById('fileContent').value = content;
+											if (content) {
+												document.getElementById('fileName').value = link.innerText;
+												document.getElementById('fileContent').value = content;
+											}
 										});
 								} else {
 									stack.push(link.innerText);
@@ -278,20 +302,20 @@
 
 			// Função para ver arquivos existentes
 			function getFile() {
-				const nome = document.getElementById('nomeBuscar').value;
-				if (!nome) {
-					alert('Preencha os campo de busca');
-					return;
-				}
 				stack.push(nome);
 				fetch(`/get/${path()}`, {
 					method: 'GET'
 				}).then(response => {
-					return response.text();
+					if (response.ok) {
+						return response.text();
+					}
+					return;
 				}).then(data => {
-					document.getElementById('textoGet').value = data;
-					stack.pop();
+					if (data) {
+						document.getElementById('textoGet').value = data;
+					}
 				});
+				stack.pop();
 			}
 
 			// Função para baixar arquivos

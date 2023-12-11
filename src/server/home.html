@@ -228,8 +228,10 @@
 											}
 										});
 								} else {
-									stack.push(link.innerText);
-									getAll();
+									if (event.target === this) {
+										stack.push(link.innerText);
+										getAll();
+									}
 								}
 							}
 							let pressTimer;

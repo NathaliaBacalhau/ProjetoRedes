@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -87,18 +88,49 @@ public class Server {
                     body.append((char) data.read());
                 }
                 JsonObject jsonBody = jsonParser.parse(body.toString()).getAsJsonObject();
-                response.write(postHandler(route, jsonBody).getBytes());
+                response.write(postHandler(route, jsonBody).getBytes(StandardCharsets.UTF_8));
                 response.flush();
             } else if (method.equals("DELETE")) {
-                response.write(deleteHandler(route).getBytes());
+                response.write(deleteHandler(route).getBytes(StandardCharsets.UTF_8));
+                response.flush();
+            } else if (method.equals("PUT")) {
+                // Captura do body
+                StringBuilder body = new StringBuilder();
+                while (data.ready()) {
+                    body.append((char) data.read());
+                }
+                JsonObject jsonBody = jsonParser.parse(body.toString()).getAsJsonObject();
+                //String fileName = route.replaceFirst("/update/", "");
+                //Path filePath = Paths.get(getServerFolder(), fileName);
+                response.write(updateHandler(route, jsonBody).getBytes(StandardCharsets.UTF_8));
                 response.flush();
             } else {
-                response.write(notImplemented.getBytes());
+                response.write(notImplemented.getBytes(StandardCharsets.UTF_8));
                 response.flush();
             }
             clientSocket.close();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private String updateHandler(String route, JsonObject object) {
+        if (route.contains("/update")) {
+            String fileName = route.replaceFirst("/update/", "");
+            Path filePath = Paths.get(getServerFolder(), fileName);
+            return updateFile(filePath, object);
+        }
+        return notFound;
+    }
+
+    private String updateFile(Path filePath, JsonObject object) {
+        try {
+            System.out.println(filePath);
+            Files.write(filePath, object.get("content").getAsString().getBytes(StandardCharsets.UTF_8));
+            System.out.println("cheguei!!");
+            return ok;
+        } catch (Exception e) {
+            return internalError;
         }
     }
 
@@ -109,19 +141,19 @@ public class Server {
         if (route.equals("/")) {
             Path home = Paths.get(getServerFolder(), "home.html");
             String getHome = get(home).replace("$root$", root);
-            response.write(getHome.getBytes());
+            response.write(getHome.getBytes(StandardCharsets.UTF_8));
             response.flush();
         } else if (route.contains("/getAll")) {
             String filesFolder = route.replaceFirst("/getAll/", "");
             Path filesPath = Paths.get(getServerFolder(), filesFolder);
             String getAll = getAll(filesPath);
-            response.write(getAll.getBytes());
+            response.write(getAll.getBytes(StandardCharsets.UTF_8));
             response.flush();
         } else if (route.contains("/get")) {
             String fileName = route.replaceFirst("/get/", "");
             Path filePath = Paths.get(getServerFolder(), fileName);
             String getFile = get(filePath);
-            response.write(getFile.getBytes());
+            response.write(getFile.getBytes(StandardCharsets.UTF_8));
             response.flush();
         } else if (route.contains("/download")) {
             String fileName = route.replaceFirst("/download/", "");
@@ -129,7 +161,7 @@ public class Server {
             fileName = filePath.getFileName().toString();
             downloadFile(response, filePath, fileName);
         } else {
-            response.write(notFound.getBytes());
+            response.write(notFound.getBytes(StandardCharsets.UTF_8));
             response.flush();
         }
     }
@@ -168,10 +200,10 @@ public class Server {
             tempDownload = tempDownload.replace("$fileBytesLength$",
                     String.valueOf(fileBytes.length));
             System.out.println(tempDownload);
-            response.write(tempDownload.getBytes());
+            response.write(tempDownload.getBytes(StandardCharsets.UTF_8));
             response.write(fileBytes);
         } catch (Exception e) {
-            response.write(internalError.getBytes());
+            response.write(internalError.getBytes(StandardCharsets.UTF_8));
             response.flush();
         }
     }
@@ -194,7 +226,7 @@ public class Server {
     private String createFile(Path filePath, String fileData) {
         try {
             Files.createDirectories(filePath.getParent());
-            Files.write(filePath, fileData.getBytes(), StandardOpenOption.CREATE);
+            Files.write(filePath, fileData.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
             return created;
         } catch (Exception e) {
             return badRequest;

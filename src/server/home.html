@@ -1,146 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>File Cloud</title>
-		<link rel="shortcut icon" type="image/png"
-			href="https://cdn.icon-icons.com/icons2/1603/PNG/512/symbol-computing-cloud-syncronize-folder_108651.png" />
-		<style>
-			@import url("https://fonts.googleapis.com/css2?family=Rubik+Bubbles&display=swap");
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>File Cloud</title>
+	<link rel="shortcut icon" type="image/png"
+		href="https://cdn.icon-icons.com/icons2/1603/PNG/512/symbol-computing-cloud-syncronize-folder_108651.png" />
+	<style>
+		@import url("https://fonts.googleapis.com/css2?family=Rubik+Bubbles&display=swap");
 
-			body {
-				font-family: Arial, sans-serif;
-				background-color: #ffffff;
-				margin: 0;
-				padding: 0;
-				display: flex;
-				flex-direction: column;
-				justify-content: center;
-				align-items: center;
-				text-align: center;
-				height: 100vh;
-			}
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #ffffff;
+			margin: 0;
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+			height: 100vh;
+		}
 
-			h1 {
-				color: #3a454b;
-				font-family: "Rubik Bubbles", sans-serif;
-			}
+		h1 {
+			color: #3a454b;
+			font-family: "Rubik Bubbles", sans-serif;
+		}
 
-			.cloudIcon {
-				width: 100px;
-			}
+		.cloudIcon {
+			width: 100px;
+		}
 
-			.trash {
-				width: 15px;
-			}
+		.trash {
+			width: 15px;
+		}
 
-			.nameContent {
-				display: inline-flex;
-				align-items: center;
-				justify-content: center;
-				gap: 10px;
-				padding-bottom: 40px;
-			}
+		.pencil {
+			width: 15px;
+		}
 
-			.dropzone {
-				padding: 20px;
-				margin: 10px 0;
-				width: 60%;
-				border: 4px solid;
-				border-radius: 5px;
-				border-color: rgb(0, 0, 0);
-			}
+		.nameContent {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			padding-bottom: 40px;
+		}
 
-			.fileLink {
-				display: inline-block;
-				margin: 5px;
-			}
+		.dropzone {
+			padding: 20px;
+			margin: 10px 0;
+			width: 60%;
+			border: 4px solid;
+			border-radius: 5px;
+			border-color: rgb(0, 0, 0);
+		}
 
-			#fileName {
-				margin: 10px;
-				display: inline-block;
-				text-align: center;
-			}
+		.fileLink {
+			display: inline-block;
+			margin: 5px;
+		}
 
-			#fileContent {
-				margin: 10px;
-				width: 50%;
-				height: 25%;
-				resize: none;
-			}
+		#fileName {
+			margin: 10px;
+			display: inline-block;
+			text-align: center;
+		}
 
-			#fileExplorer {
-				background-color: #4CAF50;
-				/* Green */
-				border: none;
-				color: white;
-				text-align: center;
-				text-decoration: none;
-				display: inline-block;
-				font-size: 16px;
-			}
-		</style>
-	</head>
+		#fileContent {
+			margin: 10px;
+			width: 50%;
+			height: 25%;
+			resize: none;
+		}
 
-	<body>
-		<div class="nameContent">
-			<div>
-				<img class="cloudIcon"
-					src="https://cdn.icon-icons.com/icons2/1603/PNG/512/symbol-computing-cloud-syncronize-folder_108651.png"
-					alt="File Cloud" />
-			</div>
-			<div>
-				<h1>File Cloud</h1>
-			</div>
-		</div>
+		#fileExplorer {
+			background-color: #4CAF50;
+			/* Green */
+			border: none;
+			color: white;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+	</style>
+</head>
 
+<body>
+	<div class="nameContent">
 		<div>
-			<button id="navigator" onclick="goBack()">&lt;</button>
-
-			<input type="text" id="folder" disabled>
+			<img class="cloudIcon"
+				src="https://cdn.icon-icons.com/icons2/1603/PNG/512/symbol-computing-cloud-syncronize-folder_108651.png"
+				alt="File Cloud" />
 		</div>
+		<div>
+			<h1>File Cloud</h1>
+		</div>
+	</div>
 
+	<div>
+		<button id="navigator" onclick="goBack()">&lt;</button>
+
+		<input type="text" id="folder" disabled>
+	</div>
+		
+	<div>
 		<input type="text" id="folderName" placeholder="Nome da pasta">
 
 		<button id="createFolder" onclick="createFolder()">Crie uma nova pasta</button>
 
-		<button id="fileExplorer" onclick="fileExplorer()">Abra seu explorador de arquivos</button>
+		
+	</div>
 
-		<div id="files" class="dropzone" ondragover="allowDrop(event)" ondrop="dropHandler(event)">
+	<button id="fileExplorer" onclick="fileExplorer()">Abra seu explorador de arquivos</button>
 
-		</div>
+	<div id="files" class="dropzone" ondragover="allowDrop(event)" ondrop="dropHandler(event)">
 
-		<input type="text" id="fileName" disabled>
+	</div>
 
-		<textarea name="textArea" id="fileContent" readonly>
+	<input type="file" id="fileInput" style="display: none;" onchange="handleFileSelection()">
+
+	<input type="text" id="fileName" disabled>
+
+	<textarea name="previewArea" id="fileContent" readonly>
 
 		</textarea>
 
-		<script>
-			const stack = ["$root$"];
+	<script>
+		const stack = ["$root$"];
 
-			function path() {
-				return stack.join('\\');
+		function path() {
+			return stack.join('\\');
+		}
+
+		function allowDrop(event) {
+			event.preventDefault();
+			const dropzone = document.getElementById('files');
+			if (dropzone) {
+				dropzone.classList.add('active');
 			}
+		}
 
-			function allowDrop(event) {
-				event.preventDefault();
-				const dropzone = document.getElementById('files');
-				if (dropzone) {
-					dropzone.classList.add('active');
-				}
+		function dropHandler(event) {
+			event.preventDefault();
+			const dropzone = document.getElementById('files');
+			if (dropzone) {
+				dropzone.classList.remove('active');
 			}
+			const files = event.dataTransfer.files;
+			let counter = 0;
+			for (const file of files) {
+				const reader = new FileReader();
+				reader.onload = async function (e) {
+					const content = e.target.result;
+					await createFile(file.name.replaceAll(" ", ""), content).then(() => {
+						counter++;
+					}).then(() => {
+						if (counter == files.length) {
+							getAll();
+						}
+					});
+				};
+				reader.readAsText(file);
+			}
+		}
 
-			function dropHandler(event) {
-				event.preventDefault();
-				const dropzone = document.getElementById('files');
-				if (dropzone) {
-					dropzone.classList.remove('active');
-				}
-				const files = event.dataTransfer.files;
-				let counter = 0;
+		function clearLinks() {
+			document.querySelectorAll('.fileLink').forEach(link => {
+				document.getElementById('files').removeChild(link);
+			});
+			document.getElementById('fileName').value = "";
+			document.getElementById('fileContent').value = "";
+		}
+
+		function goBack() {
+			stack.pop();
+			getAll();
+		}
+
+		async function getAll() {
+			document.getElementById('folder').value = path();
+			if (stack.length == 1) {
+				document.getElementById('navigator').disabled = true;
+			} else document.getElementById('navigator').disabled = false;
+			clearLinks();
+			await fetch(`/getAll/${path()}`, {
+				method: 'GET'
+			})
+				.then(response => response.text())
+				.then(files => {
+					files = files.substring(1, files.length - 1);
+					if (files.length) {
+						const fileList = files.split(',').map(file => file.trim());
+						for (const file of fileList) {
+							const link = document.createElement('a');
+							link.className = 'fileLink';
+							link.href = `/get/${path()}/${file}`;
+							link.innerText = file;
+							const del = document.createElement('button');
+							del.addEventListener('click', function () {
+								const confirmacao = window.confirm("Excluir arquivo?");
+								if (confirmacao) {
+									deleteFile(file);
+								}
+							});
+							const img = document.createElement('img');
+							img.src = 'https://cdn.icon-icons.com/icons2/868/PNG/96/trash_bin_icon-icons.com_67981.png';
+							img.className = 'trash';
+
+							const update = document.createElement('button');
+							update.addEventListener('click', function () {
+								const confirmacao = window.confirm("Editar arquivo?");
+								if (confirmacao) {
+									deleteFile(file);
+									openFileSelection();
+								}
+							});
+							const img2 = document.createElement('img');
+							img2.src = 'https://cdn.icon-icons.com/icons2/620/PNG/512/pencil-striped-symbol-for-interface-edit-buttons_icon-icons.com_56782.png';
+							img2.className = 'pencil';
+
+							del.appendChild(img);
+							link.appendChild(del);
+							update.appendChild(img2);
+							link.appendChild(update);
+							document.getElementById('files').appendChild(link);
+						}
+					}
+				})
+				.then(() => {
+					document.querySelectorAll('.fileLink').forEach(link => {
+						link.onclick = function (event) {
+							event.preventDefault();
+							const regex = /\.[a-zA-Z0-9]{1,5}$/;
+							function hasFileExtension(fileName) {
+								return regex.test(fileName);
+							}
+							if (hasFileExtension(link.innerText)) {
+								fetch(link.href)
+									.then(response => {
+										if (response.ok) {
+											return response.text();
+										}
+										return null;
+									})
+									.then(content => {
+										if (content) {
+											document.getElementById('fileName').value = link.innerText;
+											document.getElementById('fileContent').value = content;
+										}
+									});
+							} else {
+								if (event.target === this) {
+									stack.push(link.innerText);
+									getAll();
+								}
+							}
+						}
+						let pressTimer;
+						link.addEventListener('mousedown', function () {
+							pressTimer = window.setTimeout(function () {
+								const confirmacao = window.confirm("Fazer download?");
+								if (confirmacao) {
+									downloadFile(link.innerText);
+								}
+							}, 500);
+						});
+						link.addEventListener('mouseup', function () {
+							clearTimeout(pressTimer);
+						});
+					});
+				});
+		}
+
+		// Função para criar um novo arquivo
+		async function createFile(name, data) {
+			fetch(`/create/${path()}`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ name: name, data: data }),
+			});
+		}
+
+		// Função para abrir o explorador de arquivos
+		function fileExplorer() {
+			let counter = 0;
+			let input = document.createElement('input');
+			input.type = 'file';
+			input.multiple = true;
+			input.onchange = async () => {
+				let files = Array.from(input.files);
 				for (const file of files) {
 					const reader = new FileReader();
 					reader.onload = async function (e) {
@@ -155,212 +308,127 @@
 					};
 					reader.readAsText(file);
 				}
-			}
+			};
+			input.click();
+		}
 
-			function clearLinks() {
-				document.querySelectorAll('.fileLink').forEach(link => {
-					document.getElementById('files').removeChild(link);
-				});
-				document.getElementById('fileName').value = "";
-				document.getElementById('fileContent').value = "";
-			}
-
-			function goBack() {
-				stack.pop();
-				getAll();
-			}
-
-			function getAll() {
-				document.getElementById('folder').value = path();
-				if (stack.length == 1) {
-					document.getElementById('navigator').disabled = true;
-				} else document.getElementById('navigator').disabled = false;
-				clearLinks();
-				fetch(`/getAll/${path()}`, {
-					method: 'GET'
-				})
-					.then(response => response.text())
-					.then(files => {
-						files = files.substring(1, files.length - 1);
-						if (files.length) {
-							const fileList = files.split(',').map(file => file.trim());
-							for (const file of fileList) {
-								const link = document.createElement('a');
-								link.className = 'fileLink';
-								link.href = `/get/${path()}/${file}`;
-								link.innerText = file;
-								const del = document.createElement('button');
-								del.addEventListener('click', function () {
-									const confirmacao = window.confirm("Excluir arquivo?");
-									if (confirmacao) {
-										deleteFile(file);
-									}
-								});
-								const img = document.createElement('img');
-								img.src = 'https://cdn.icon-icons.com/icons2/868/PNG/96/trash_bin_icon-icons.com_67981.png';
-								img.className = 'trash';
-								del.appendChild(img);
-								link.appendChild(del);
-								document.getElementById('files').appendChild(link);
-							}
-						}
-					})
-					.then(() => {
-						document.querySelectorAll('.fileLink').forEach(link => {
-							link.onclick = function (event) {
-								event.preventDefault();
-								const regex = /\.[a-zA-Z0-9]{1,5}$/;
-								function hasFileExtension(fileName) {
-									return regex.test(fileName);
-								}
-								if (hasFileExtension(link.innerText)) {
-									fetch(link.href)
-										.then(response => {
-											if (response.ok) {
-												return response.text();
-											}
-											return null;
-										})
-										.then(content => {
-											if (content) {
-												document.getElementById('fileName').value = link.innerText;
-												document.getElementById('fileContent').value = content;
-											}
-										});
-								} else {
-									if (event.target === this) {
-										stack.push(link.innerText);
-										getAll();
-									}
-								}
-							}
-							let pressTimer;
-							link.addEventListener('mousedown', function () {
-								pressTimer = window.setTimeout(function () {
-									const confirmacao = window.confirm("Fazer download?");
-									if (confirmacao) {
-										downloadFile(link.innerText);
-									}
-								}, 500);
-							});
-							link.addEventListener('mouseup', function () {
-								clearTimeout(pressTimer);
-							});
-						});
-					});
-			}
-
-			// Função para criar um novo arquivo
-			async function createFile(name, data) {
+		function createFolder() {
+			const nome = document.getElementById('folderName').value;
+			if (nome) {
 				fetch(`/create/${path()}`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ name: name, data: data }),
-				});
-			}
-
-			// Função para abrir o explorador de arquivos
-			function fileExplorer() {
-				let counter = 0;
-				let input = document.createElement('input');
-				input.type = 'file';
-				input.multiple = true;
-				input.onchange = async () => {
-					let files = Array.from(input.files);
-					for (const file of files) {
-						const reader = new FileReader();
-						reader.onload = async function (e) {
-							const content = e.target.result;
-							await createFile(file.name.replaceAll(" ", ""), content).then(() => {
-								counter++;
-							}).then(() => {
-								if (counter == files.length) {
-									getAll();
-								}
-							});
-						};
-						reader.readAsText(file);
-					}
-				};
-				input.click();
-			}
-
-			function createFolder() {
-				const nome = document.getElementById('folderName').value;
-				if (nome) {
-					fetch(`/create/${path()}`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({ name: nome, data: null }),
-					}).then(() => {
-						getAll();
-					});
-				} else alert('A pasta deve possuir um nome');
-			}
-
-			// Função para ver arquivos existentes
-			function getFile() {
-				stack.push(nome);
-				fetch(`/get/${path()}`, {
-					method: 'GET'
-				}).then(response => {
-					if (response.ok) {
-						return response.text();
-					}
-					return;
-				}).then(data => {
-					if (data) {
-						document.getElementById('textoGet').value = data;
-					}
-				});
-				stack.pop();
-			}
-
-			// Função para baixar arquivos
-			function downloadFile(nome) {
-				stack.push(nome)
-				fetch(`/download/${path()}`, {
-					method: 'GET'
-				}).then(response => {
-					// Verifica se a requisição foi bem-sucedida (status 2xx)
-					if (!response.ok) {
-						alert(response.statusText);
-					}
-					const contentType = response.headers.get('content-type');
-					if (contentType && contentType.startsWith('application/octet-stream')) {
-						const contentDisposition = response.headers.get('content-disposition');
-						const matches = /filename="([^"]+)"/.exec(contentDisposition);
-						const fileName = matches ? matches[1] : 'downloaded_file';
-						response.blob().then(blob => {
-							const url = window.URL.createObjectURL(blob);
-							const a = document.createElement('a');
-							a.href = url;
-							a.download = fileName;
-							a.click();
-							window.URL.revokeObjectURL(url);
-						});
-					}
-				});
-			}
-
-			// Função para excluir um arquivo existente
-			function deleteFile(nome) {
-				stack.push(nome);
-				fetch(`/delete/${path()}`, {
-					method: 'DELETE'
-				}).then(response => response.statusText).then(message => {
-					stack.pop();
+					body: JSON.stringify({ name: nome, data: null }),
 				}).then(() => {
 					getAll();
 				});
-			}
+			} else alert('A pasta deve possuir um nome');
+		}
 
-			getAll(); 
-		</script>
-	</body>
+		// Função para ver arquivos existentes
+		function getFile() {
+			stack.push(nome);
+			fetch(`/get/${path()}`, {
+				method: 'GET'
+			}).then(response => {
+				if (response.ok) {
+					return response.text();
+				}
+				return;
+			}).then(data => {
+				if (data) {
+					document.getElementById('textoGet').value = data;
+				}
+			});
+			stack.pop();
+		}
+
+		// Função para baixar arquivos
+		function downloadFile(nome) {
+			stack.push(nome)
+			fetch(`/download/${path()}`, {
+				method: 'GET'
+			}).then(response => {
+				// Verifica se a requisição foi bem-sucedida (status 2xx)
+				if (!response.ok) {
+					alert(response.statusText);
+				}
+				const contentType = response.headers.get('content-type');
+				if (contentType && contentType.startsWith('application/octet-stream')) {
+					const contentDisposition = response.headers.get('content-disposition');
+					const matches = /filename="([^"]+)"/.exec(contentDisposition);
+					const fileName = matches ? matches[1] : 'downloaded_file';
+					response.blob().then(blob => {
+						const url = window.URL.createObjectURL(blob);
+						const a = document.createElement('a');
+						a.href = url;
+						a.download = fileName;
+						a.click();
+						location.reload();
+						window.URL.revokeObjectURL(url);
+					});
+				}
+			});
+		}
+
+		function openFileSelection() {
+			document.getElementById('fileInput').click();
+		}
+
+		function handleFileSelection(File) {
+			const fileInput = document.getElementById('fileInput');
+			const selectedFile = fileInput.files[0];
+
+			if (selectedFile) {
+				const reader = new FileReader();
+				reader.onload = function (e) {
+					const content = e.target.result;
+					const fileName = selectedFile.name.replaceAll(" ", "");
+
+					// Chama a função de atualização aqui, passando o nome do arquivo e seu conteúdo.
+					updateFile(fileName, content);
+				};
+
+				reader.readAsText(selectedFile);
+			}
+		}
+
+		async function updateFile(name, data) {
+			stack.push(name);
+			await fetch(`/update/${path()}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ content: data }),
+			}).then(response => {
+				if (response.ok) {
+					alert('Arquivo atualizado com sucesso!');
+				} else {
+					alert('Erro ao atualizar o arquivo.');
+				}
+			}).then(() => {
+				stack.pop();
+				getAll();
+			});
+		}
+
+		// Função para excluir um arquivo existente
+		async function deleteFile(nome) {
+			stack.push(nome);
+			await fetch(`/delete/${path()}`, {
+				method: 'DELETE'
+			}).then(response => response.statusText).then(message => {
+				stack.pop();
+			}).then(() => {
+				getAll();
+			});
+		}
+
+		getAll(); 
+	</script>
+</body>
 
 </html>

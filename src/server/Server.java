@@ -225,6 +225,7 @@ public class Server {
 
     private String createFile(Path filePath, String fileData) {
         try {
+            System.out.println(filePath.toString());
             Files.createDirectories(filePath.getParent());
             Files.write(filePath, fileData.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
             return created;

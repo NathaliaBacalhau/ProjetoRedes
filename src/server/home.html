@@ -9,10 +9,11 @@
 		href="https://cdn.icon-icons.com/icons2/1603/PNG/512/symbol-computing-cloud-syncronize-folder_108651.png" />
 	<style>
 		@import url("https://fonts.googleapis.com/css2?family=Rubik+Bubbles&display=swap");
+		@import url('https://fonts.googleapis.com/css2?family=Nova+Mono&display=swap');
 
 		body {
 			font-family: Arial, sans-serif;
-			background-color: #ffffff;
+			background: linear-gradient(90deg, rgb(70,135,197,255), rgb(255, 255, 255), rgb(70,135,197,255));
 			margin: 0;
 			padding: 0;
 			display: flex;
@@ -55,6 +56,15 @@
 			border: 4px solid;
 			border-radius: 5px;
 			border-color: rgb(0, 0, 0);
+			font-family: 'Nova Mono';
+		}
+
+		.menu {
+			margin: 5px;
+			border-radius: 5px;
+			text-align: center;
+			background: none;
+			font-family: 'Nova Mono';
 		}
 
 		.fileLink {
@@ -76,7 +86,7 @@
 		}
 
 		#fileExplorer {
-			background-color: #4CAF50;
+			background-color: #4687c5;
 			/* Green */
 			border: none;
 			color: white;
@@ -101,20 +111,20 @@
 	</div>
 
 	<div>
-		<button id="navigator" onclick="goBack()">&lt;</button>
+		<button class="menu"  id="navigator" onclick="goBack()">&lt;</button>
 
-		<input type="text" id="folder" disabled>
+		<input class="menu" type="text" id="folder" disabled>
 	</div>
 		
 	<div>
-		<input type="text" id="folderName" placeholder="Nome da pasta">
+		<input class="menu"  type="text" id="folderName" placeholder="Nome da pasta">
 
-		<button id="createFolder" onclick="createFolder()">Crie uma nova pasta</button>
+		<button class="menu"  id="createFolder" onclick="createFolder()">Crie uma nova pasta</button>
 
 		
 	</div>
 
-	<button id="fileExplorer" onclick="fileExplorer()">Abra seu explorador de arquivos</button>
+	<button  class="menu" id="fileExplorer" onclick="fileExplorer()">Abra seu explorador de arquivos</button>
 
 	<div id="files" class="dropzone" ondragover="allowDrop(event)" ondrop="dropHandler(event)">
 
@@ -122,11 +132,10 @@
 
 	<input type="file" id="fileInput" style="display: none;" onchange="handleFileSelection()">
 
-	<input type="text" id="fileName" disabled>
+	<input type="text" class="menu" id="fileName" disabled>
 
-	<textarea name="previewArea" id="fileContent" readonly>
-
-		</textarea>
+	<textarea class="menu" name="previewArea" id="fileContent" ></textarea>
+	<button class="menu" id="salvarArquivo" onclick="salvarArquivo()">Salvar</button>
 
 	<script>
 		const stack = ["$root$"];
@@ -413,6 +422,20 @@
 				stack.pop();
 				getAll();
 			});
+		}
+
+		async function salvarArquivo(){
+			const nome = document.getElementById('fileName').value;
+			const data =  document.getElementById('fileContent').value;
+			if (nome) {
+				await deleteFile(nome).then(async () => {
+					await createFile(nome, data).then(async () => {
+						await getAll().then(() => {
+							location.reload(true);
+						})
+					})
+				});	
+			} else alert('Sem alteração no corpo do arquivo');
 		}
 
 		// Função para excluir um arquivo existente

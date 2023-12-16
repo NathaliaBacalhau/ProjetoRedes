@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 
 public class App {
-
     public static void main(String[] args) throws Exception {
         JsonReader configReader = new JsonReader(new FileReader("src\\config.json"));
         JsonParser jsonParser = new JsonParser();

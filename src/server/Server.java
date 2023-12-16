@@ -12,9 +12,10 @@ import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.io.*;
 
-public class Server {
+public class Server{
     final String ip, root;
     final int port;
+
 
     // #region http responses
     String ok = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n";
@@ -49,6 +50,7 @@ public class Server {
 
             while (true) {
                 Socket clientsSocket = httpServer.accept();
+               Thread clientThread = new Thread(new ClientHandler(clientsSocket));
                 handler(clientsSocket);
             }
         } catch (Exception e) {
@@ -56,6 +58,7 @@ public class Server {
         }
     }
 
+    
     // Manipulador das requisições para decidir o que será feito
     private void handler(Socket clientSocket) {
         try {
@@ -225,7 +228,6 @@ public class Server {
 
     private String createFile(Path filePath, String fileData) {
         try {
-            System.out.println(filePath.toString());
             Files.createDirectories(filePath.getParent());
             Files.write(filePath, fileData.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
             return created;
@@ -271,5 +273,43 @@ public class Server {
 
     private String getServerFolder() {
         return "src\\server";
+    }
+
+    private class ClientHandler implements Runnable{
+        private Socket clientSocket;
+    
+            public ClientHandler(Socket clientSocket) {
+                this.clientSocket = clientSocket;
+            }
+    
+            @Override
+            public void run() {
+                try {
+                    // Configurar leitura e escrita para o cliente
+                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+    
+                    // Exemplo simples de comunicação
+                    out.println("Bem-vindo ao servidor!");
+    
+                    String inputLine;
+                    while ((inputLine = in.readLine()) != null) {
+                        System.out.println("Received from " + clientSocket.getInetAddress() + ": " + inputLine);
+                        out.println("Recebido: " + inputLine);
+    
+                        if (inputLine.equals("bye")) {
+                            break;
+                        }
+                    }
+    
+                    // Fechar recursos
+                    in.close();
+                    out.close();
+                    clientSocket.close();
+    
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
     }
 }

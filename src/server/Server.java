@@ -50,7 +50,7 @@ public class Server{
 
             while (true) {
                 Socket clientsSocket = httpServer.accept();
-               Thread clientThread = new Thread(new ClientHandler(clientsSocket));
+                Thread clientThread = new Thread(new ClientHandler(clientsSocket));
                 handler(clientsSocket);
             }
         } catch (Exception e) {
